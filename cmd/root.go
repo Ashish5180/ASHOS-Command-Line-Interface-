@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"ashos/internal/focus"
+	"ashos/internal/system"
 	"ashos/internal/task"
 	"fmt"
 
@@ -11,7 +13,9 @@ import (
 // main.go mein banata hai, commands mein inject hota hai.
 // Koi bhi command file directly storage/repo nahi banayegi — sab kuch yahan se milega.
 type App struct {
-	TaskService *task.Service
+	TaskService   *task.Service
+	SystemService *system.Service
+	FocusManager  *focus.Manager
 }
 
 // rootCmd is the base "ash" command.
@@ -37,6 +41,8 @@ Control tasks, notes, focus and system insights.
 // RegisterCommands wo bridge hai jo runtime dependencies ko static command tree se jodta hai.
 func RegisterCommands(app *App) {
 	rootCmd.AddCommand(NewTaskCommand(app))
+	rootCmd.AddCommand(NewStatusCommand(app))
+	rootCmd.AddCommand(NewFocusCommand(app))
 }
 
 // Execute runs the root command. Called from main.go.

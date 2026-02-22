@@ -5,7 +5,9 @@ import (
 	"os"
 
 	"ashos/cmd"
+	"ashos/internal/focus"
 	"ashos/internal/storage"
+	"ashos/internal/system"
 	"ashos/internal/task"
 )
 
@@ -30,9 +32,15 @@ func main() {
 	// 3. Task service — business logic layer
 	taskService := task.NewService(taskRepo)
 
-	// 4. Dependency container — holds all services for CLI
+	// 4. System & Focus services
+	sysService := system.NewService(taskService, store)
+	focusManager := focus.NewManager(store)
+
+	// 5. Dependency container — holds all services for CLI
 	app := &cmd.App{
-		TaskService: taskService,
+		TaskService:   taskService,
+		SystemService: sysService,
+		FocusManager:  focusManager,
 	}
 
 	// 5. Wire commands — inject dependencies into command tree
