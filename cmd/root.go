@@ -1,11 +1,20 @@
 package cmd
 
 import (
+	"ashos/internal/task"
 	"fmt"
 
 	"github.com/spf13/cobra"
 )
 
+// App is the dependency container.
+// main.go mein banata hai, commands mein inject hota hai.
+// Koi bhi command file directly storage/repo nahi banayegi — sab kuch yahan se milega.
+type App struct {
+	TaskService *task.Service
+}
+
+// rootCmd is the base "ash" command.
 var rootCmd = &cobra.Command{
 	Use:   "ash",
 	Short: "ASHOS - Your Personal Command Center",
@@ -20,6 +29,17 @@ Control tasks, notes, focus and system insights.
 	},
 }
 
+// RegisterCommands wires all module commands with injected dependencies.
+// main.go calls this AFTER creating App — ensures DI flows top-down.
+//
+// Kyon alag function hai?
+// Kyunki rootCmd global hai (Cobra pattern), lekin dependencies runtime pe banti hain.
+// RegisterCommands wo bridge hai jo runtime dependencies ko static command tree se jodta hai.
+func RegisterCommands(app *App) {
+	rootCmd.AddCommand(NewTaskCommand(app))
+}
+
+// Execute runs the root command. Called from main.go.
 func Execute() error {
 	return rootCmd.Execute()
 }
