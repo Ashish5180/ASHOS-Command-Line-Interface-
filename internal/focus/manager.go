@@ -101,3 +101,10 @@ func (m *Manager) GetStats() time.Duration {
 	defer m.session.mu.Unlock()
 	return m.session.Duration
 }
+
+// IsActive returns if a focus session is currently running.
+func (m *Manager) IsActive() bool {
+	m.session.mu.Lock()
+	defer m.session.mu.Unlock()
+	return m.session.IsActive
+}

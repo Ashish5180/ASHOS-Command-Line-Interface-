@@ -43,6 +43,7 @@ func RegisterCommands(app *App) {
 	rootCmd.AddCommand(NewTaskCommand(app))
 	rootCmd.AddCommand(NewStatusCommand(app))
 	rootCmd.AddCommand(NewFocusCommand(app))
+	rootCmd.AddCommand(newDashCommand(app))
 }
 
 // Execute runs the root command. Called from main.go.
