@@ -18,7 +18,7 @@ type StoreRepository struct {
 }
 
 // NewStoreRepository creates a Repository backed by any storage.Store engine.
-// main.go mein call hoga: task.NewStoreRepository(jsonStore)
+// main.go mein call hoga: task.NewStoreRepository(sqliteStore)
 func NewStoreRepository(store storage.Store) Repository {
 	return &StoreRepository{store: store}
 }

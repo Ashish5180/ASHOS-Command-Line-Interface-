@@ -1,6 +1,7 @@
 package task
 
 import (
+	"ashos/internal/core/event"
 	"fmt"
 	"strings"
 	"time"
@@ -11,12 +12,13 @@ import (
 // CLI kabhi directly Repository ko touch nahi karega.
 type Service struct {
 	repo Repository
+	bus  *event.EventBus
 }
 
 // NewService creates a task service with injected repository.
 // Repository kya hai (JSON? Memory?) — Service ko pata nahi, na hi pata hona chahiye.
-func NewService(r Repository) *Service {
-	return &Service{repo: r}
+func NewService(r Repository, bus *event.EventBus) *Service {
+	return &Service{repo: r, bus: bus}
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +65,8 @@ func (s *Service) AddTask(title string) (int, error) {
 		return 0, fmt.Errorf("failed to save task: %w", err)
 	}
 
+	s.bus.Publish(event.TaskCreated{ID: nextID, Title: title})
+
 	return nextID, nil
 }
 
@@ -73,33 +77,35 @@ func (s *Service) ListTasks() ([]Task, error) {
 }
 
 // CompleteTask marks a task as done.
-//
-// Invariants protected:
-// 1. Task exist karna chahiye (invalid ID → error)
-// 2. Already completed task dobara complete nahi ho sakta
 func (s *Service) CompleteTask(id int) error {
 	tasks, err := s.repo.GetAll()
 	if err != nil {
 		return fmt.Errorf("failed to load tasks: %w", err)
 	}
 
-	found := false
+	foundIdx := -1
 	for i := range tasks {
 		if tasks[i].ID == id {
 			if tasks[i].Completed {
 				return fmt.Errorf("task #%d is already completed", id)
 			}
 			tasks[i].Completed = true
-			found = true
+			foundIdx = i
 			break
 		}
 	}
 
-	if !found {
+	if foundIdx == -1 {
 		return fmt.Errorf("task #%d not found", id)
 	}
 
-	return s.repo.SaveAll(tasks)
+	if err := s.repo.SaveAll(tasks); err != nil {
+		return err
+	}
+
+	s.bus.Publish(event.TaskCompleted{ID: id, Title: tasks[foundIdx].Title})
+
+	return nil
 }
 
 // DeleteTask removes a task permanently.
@@ -125,7 +131,13 @@ func (s *Service) DeleteTask(id int) error {
 		return fmt.Errorf("task #%d not found", id)
 	}
 
-	return s.repo.SaveAll(filtered)
+	if err := s.repo.SaveAll(filtered); err != nil {
+		return err
+	}
+
+	s.bus.Publish(event.TaskDeleted{ID: id})
+
+	return nil
 }
 
 // PendingCount returns the number of incomplete tasks.

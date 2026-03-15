@@ -1,6 +1,7 @@
 package focus
 
 import (
+	"ashos/internal/core/event"
 	"ashos/internal/storage"
 	"context"
 	"fmt"
@@ -21,14 +22,16 @@ type Manager struct {
 	session *Session
 	stopCh  chan bool
 	store   storage.Store
+	bus     *event.EventBus
 }
 
 // NewManager initializes the focus manager.
-func NewManager(store storage.Store) *Manager {
+func NewManager(store storage.Store, bus *event.EventBus) *Manager {
 	return &Manager{
 		session: &Session{},
 		stopCh:  make(chan bool),
 		store:   store,
+		bus:     bus,
 	}
 }
 
@@ -49,6 +52,7 @@ func (m *Manager) StartSession() {
 		defer ticker.Stop()
 
 		fmt.Println("🧠 Focus Session Started! Stay sharp.")
+		m.bus.Publish(event.FocusStarted{StartTime: m.session.StartTime})
 
 		for {
 			select {
@@ -78,6 +82,7 @@ func (m *Manager) StopSession() {
 	m.session.mu.Unlock()
 
 	m.saveSession()
+	m.bus.Publish(event.FocusEnded{StartTime: m.session.StartTime, Duration: m.session.Duration})
 	m.stopCh <- true
 }
 
