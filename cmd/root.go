@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"ashos/internal/ai"
 	"ashos/internal/focus"
 	"ashos/internal/system"
 	"ashos/internal/task"
@@ -16,6 +17,7 @@ type App struct {
 	TaskService   *task.Service
 	SystemService *system.Service
 	FocusManager  *focus.Manager
+	AIService     ai.Service
 }
 
 // rootCmd is the base "ash" command.
@@ -44,6 +46,7 @@ func RegisterCommands(app *App) {
 	rootCmd.AddCommand(NewStatusCommand(app))
 	rootCmd.AddCommand(NewFocusCommand(app))
 	rootCmd.AddCommand(newDashCommand(app))
+	rootCmd.AddCommand(aiCmd(app))
 }
 
 // Execute runs the root command. Called from main.go.

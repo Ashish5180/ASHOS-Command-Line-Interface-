@@ -42,8 +42,9 @@ func (eb *EventBus) Publish(event any) {
 	t := reflect.TypeOf(event)
 	if handlers, ok := eb.subscribers[t]; ok {
 		for _, handler := range handlers {
-			// Decouple execution via goroutine
-			go handler(event)
+			// In a CLI environment, we run handlers synchronously
+			// to ensure persistence before the process exits.
+			handler(event)
 		}
 	}
 }

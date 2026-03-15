@@ -5,11 +5,13 @@ import (
 	"os"
 
 	"ashos/cmd"
+	"ashos/internal/ai"
 	"ashos/internal/core/event"
 	"ashos/internal/focus"
 	"ashos/internal/storage"
 	"ashos/internal/system"
 	"ashos/internal/task"
+	"database/sql"
 	"time"
 )
 
@@ -35,6 +37,19 @@ func main() {
 	sysService := system.NewService(taskService, store)
 	focusManager := focus.NewManager(store, bus)
 
+	// 6. AI Module — RAG on Your Own Data
+	// Direct DB access for vector search
+	var db *sql.DB
+	if s, ok := store.(interface{ GetDB() *sql.DB }); ok {
+		db = s.GetDB()
+	}
+
+	aiRepo, err := ai.NewSQLiteRepository(db)
+	if err != nil {
+		fmt.Printf("⚠️  AI module disabled: %v\n", err)
+	}
+	aiService := ai.NewService(aiRepo, bus, sysService)
+
 	// --- 🧠 Event Subscriptions (Cross-Module Reactions) ---
 	// In the future, these can be moved to dedicated modules (e.g., streak_manager)
 	bus.Subscribe(event.TaskCompleted{}, func(e any) {
@@ -52,6 +67,7 @@ func main() {
 		TaskService:   taskService,
 		SystemService: sysService,
 		FocusManager:  focusManager,
+		AIService:     aiService,
 	}
 
 	// 5. Wire commands — inject dependencies into command tree

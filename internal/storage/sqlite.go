@@ -133,6 +133,12 @@ func (s *sqliteStore) List(ctx context.Context, collection string, dest any) err
 	return json.Unmarshal(combined, dest)
 }
 
+// GetDB returns the underlying *sql.DB connection.
+// Used for modules that need direct SQL access (like AI vector search).
+func (s *sqliteStore) GetDB() *sql.DB {
+	return s.db
+}
+
 // Close closes the database connection.
 func (s *sqliteStore) Close() error {
 	return s.db.Close()
