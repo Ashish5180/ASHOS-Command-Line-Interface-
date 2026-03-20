@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"ashos/internal/ui"
+	"bufio"
 	"fmt"
 	"os"
 	"os/signal"
@@ -36,7 +37,19 @@ func NewFocusCommand(app *App) *cobra.Command {
 
 			// Wait for interrupt
 			<-sigs
-			app.FocusManager.StopSession()
+			fmt.Print("\n📝 What did you focus on? (Optional): ")
+			
+			scanner := bufio.NewScanner(os.Stdin)
+			var summary string
+			if scanner.Scan() {
+				summary = scanner.Text()
+			}
+			
+			if strings.TrimSpace(summary) == "" {
+				summary = "No summary provided."
+			}
+
+			app.FocusManager.StopSession(summary)
 			fmt.Printf("Total Focus Time: %v\n", app.FocusManager.GetStats())
 		},
 	}

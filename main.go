@@ -8,6 +8,8 @@ import (
 	"ashos/internal/ai"
 	"ashos/internal/core/event"
 	"ashos/internal/focus"
+	"ashos/internal/note"
+	"ashos/internal/sprint"
 	"ashos/internal/storage"
 	"ashos/internal/system"
 	"ashos/internal/task"
@@ -27,18 +29,16 @@ func main() {
 	// 2. Event Bus — Central messaging system
 	bus := event.NewEventBus()
 
-	// 3. Task repository — bridges task module ↔ storage engine
+	// 3. Services setup
 	taskRepo := task.NewStoreRepository(store)
-
-	// 4. Task service — business logic layer
 	taskService := task.NewService(taskRepo, bus)
 
-	// 5. System & Focus services
 	sysService := system.NewService(taskService, store)
 	focusManager := focus.NewManager(store, bus)
+	noteService := note.NewService(store, bus)
+	sprintService := sprint.NewService(store, bus)
 
-	// 6. AI Module — RAG on Your Own Data
-	// Direct DB access for vector search
+	// 4. AI Module — RAG on Your Own Data
 	var db *sql.DB
 	if s, ok := store.(interface{ GetDB() *sql.DB }); ok {
 		db = s.GetDB()
@@ -51,7 +51,6 @@ func main() {
 	aiService := ai.NewService(aiRepo, bus, sysService)
 
 	// --- 🧠 Event Subscriptions (Cross-Module Reactions) ---
-	// In the future, these can be moved to dedicated modules (e.g., streak_manager)
 	bus.Subscribe(event.TaskCompleted{}, func(e any) {
 		ev := e.(event.TaskCompleted)
 		fmt.Printf("\n✨ [Event] Productivity Win! You finished: %s\n", ev.Title)
@@ -62,11 +61,22 @@ func main() {
 		fmt.Printf("\n🔋 [Event] Focus session complete: %v tracked. Recovery mode on!\n", ev.Duration.Truncate(time.Second))
 	})
 
-	// 6. Dependency container — holds all services for CLI
+	bus.Subscribe(event.NoteCreated{}, func(e any) {
+		fmt.Printf("\n✍️  [Event] Personal insight archived.\n")
+	})
+
+	bus.Subscribe(event.SprintEnded{}, func(e any) {
+		ev := e.(event.SprintEnded)
+		fmt.Printf("\n🌊 [Event] Sprint '%s' closed. Performance analyzed.\n", ev.Title)
+	})
+
+	// 5. Dependency container — holds all services for CLI
 	app := &cmd.App{
 		TaskService:   taskService,
 		SystemService: sysService,
 		FocusManager:  focusManager,
+		NoteService:   noteService,
+		SprintService: sprintService,
 		AIService:     aiService,
 	}
 

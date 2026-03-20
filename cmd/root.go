@@ -3,6 +3,8 @@ package cmd
 import (
 	"ashos/internal/ai"
 	"ashos/internal/focus"
+	"ashos/internal/note"
+	"ashos/internal/sprint"
 	"ashos/internal/system"
 	"ashos/internal/task"
 	"fmt"
@@ -17,6 +19,8 @@ type App struct {
 	TaskService   *task.Service
 	SystemService *system.Service
 	FocusManager  *focus.Manager
+	NoteService   *note.Service
+	SprintService *sprint.Service
 	AIService     ai.Service
 }
 
@@ -37,14 +41,12 @@ Control tasks, notes, focus and system insights.
 
 // RegisterCommands wires all module commands with injected dependencies.
 // main.go calls this AFTER creating App — ensures DI flows top-down.
-//
-// Kyon alag function hai?
-// Kyunki rootCmd global hai (Cobra pattern), lekin dependencies runtime pe banti hain.
-// RegisterCommands wo bridge hai jo runtime dependencies ko static command tree se jodta hai.
 func RegisterCommands(app *App) {
 	rootCmd.AddCommand(NewTaskCommand(app))
 	rootCmd.AddCommand(NewStatusCommand(app))
 	rootCmd.AddCommand(NewFocusCommand(app))
+	rootCmd.AddCommand(NewNoteCommand(app))
+	rootCmd.AddCommand(NewSprintCommand(app))
 	rootCmd.AddCommand(newDashCommand(app))
 	rootCmd.AddCommand(aiCmd(app))
 }

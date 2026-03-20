@@ -38,7 +38,17 @@ func NewService(repo Repository, bus *event.EventBus, sys *system.Service) Servi
 
 	bus.Subscribe(event.FocusEnded{}, func(e any) {
 		evt := e.(event.FocusEnded)
-		s.IngestFocusSession(context.Background(), evt.StartTime, evt.Duration)
+		s.IngestFocusSession(context.Background(), evt.StartTime, evt.Duration, evt.Summary)
+	})
+
+	bus.Subscribe(event.NoteCreated{}, func(e any) {
+		evt := e.(event.NoteCreated)
+		s.IngestNote(context.Background(), evt.ID, evt.Content)
+	})
+
+	bus.Subscribe(event.SprintEnded{}, func(e any) {
+		evt := e.(event.SprintEnded)
+		s.IngestSprint(context.Background(), evt.ID, evt.Title, evt.Summary)
 	})
 
 	return s
@@ -195,12 +205,12 @@ func (s *service) IngestTask(ctx context.Context, taskID int, title string) erro
 	}, embedding)
 }
 
-func (s *service) IngestFocusSession(ctx context.Context, startTime time.Time, duration time.Duration) error {
+func (s *service) IngestFocusSession(ctx context.Context, startTime time.Time, duration time.Duration, summary string) error {
 	if s.repo == nil {
 		return nil
 	}
 	fmt.Printf("🧠 AI Brain: Ingesting focus session (%v)...\n", duration.Round(time.Second))
-	content := fmt.Sprintf("Focused for %s", duration.Round(time.Minute))
+	content := fmt.Sprintf("Focused for %s. Summary: %s", duration.Round(time.Minute), summary)
 	embedding, err := s.generateEmbedding(ctx, content)
 	if err != nil {
 		return err
@@ -209,6 +219,43 @@ func (s *service) IngestFocusSession(ctx context.Context, startTime time.Time, d
 	return s.repo.SaveEmbedding(ctx, EmbeddingRecord{
 		Collection: "focus",
 		Key:        fmt.Sprintf("focus_%d", startTime.Unix()),
+		Content:    content,
+		CreatedAt:  time.Now(),
+	}, embedding)
+}
+
+func (s *service) IngestNote(ctx context.Context, noteID int, content string) error {
+	if s.repo == nil {
+		return nil
+	}
+	fmt.Printf("🧠 AI Brain: Ingesting journal entry...\n")
+	embedding, err := s.generateEmbedding(ctx, content)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.SaveEmbedding(ctx, EmbeddingRecord{
+		Collection: "notes",
+		Key:        fmt.Sprintf("note_%d", noteID),
+		Content:    content,
+		CreatedAt:  time.Now(),
+	}, embedding)
+}
+
+func (s *service) IngestSprint(ctx context.Context, sprintID int, title, summary string) error {
+	if s.repo == nil {
+		return nil
+	}
+	fmt.Printf("🧠 AI Brain: Ingesting sprint review '%s'...\n", title)
+	content := fmt.Sprintf("Sprint: %s. Review: %s", title, summary)
+	embedding, err := s.generateEmbedding(ctx, content)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.SaveEmbedding(ctx, EmbeddingRecord{
+		Collection: "sprints",
+		Key:        fmt.Sprintf("sprint_%d", sprintID),
 		Content:    content,
 		CreatedAt:  time.Now(),
 	}, embedding)
@@ -231,5 +278,7 @@ type Service interface {
 	GenerateStandup(ctx context.Context) (string, error)
 	SuggestNextTask(ctx context.Context) (string, error)
 	IngestTask(ctx context.Context, taskID int, title string) error
-	IngestFocusSession(ctx context.Context, startTime time.Time, duration time.Duration) error
+	IngestFocusSession(ctx context.Context, startTime time.Time, duration time.Duration, summary string) error
+	IngestNote(ctx context.Context, noteID int, content string) error
+	IngestSprint(ctx context.Context, sprintID int, title, summary string) error
 }

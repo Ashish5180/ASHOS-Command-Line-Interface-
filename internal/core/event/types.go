@@ -27,6 +27,26 @@ type FocusStarted struct {
 type FocusEnded struct {
 	StartTime time.Time
 	Duration  time.Duration
+	Summary   string
+}
+
+// --- Note Events ---
+
+type NoteCreated struct {
+	ID        int
+	Content   string
+	CreatedAt time.Time
+}
+
+// --- Sprint Events ---
+
+type SprintEnded struct {
+	ID        int
+	Title     string
+	Summary   string
+	TasksDone int
+	FocusTime time.Duration
+	CreatedAt time.Time
 }
 
 // --- System Events ---

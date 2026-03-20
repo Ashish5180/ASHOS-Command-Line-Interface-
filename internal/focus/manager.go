@@ -72,7 +72,7 @@ func (m *Manager) StartSession() {
 }
 
 // StopSession sends a stop signal and saves the session.
-func (m *Manager) StopSession() {
+func (m *Manager) StopSession(summary string) {
 	m.session.mu.Lock()
 	if !m.session.IsActive {
 		m.session.mu.Unlock()
@@ -82,7 +82,11 @@ func (m *Manager) StopSession() {
 	m.session.mu.Unlock()
 
 	m.saveSession()
-	m.bus.Publish(event.FocusEnded{StartTime: m.session.StartTime, Duration: m.session.Duration})
+	m.bus.Publish(event.FocusEnded{
+		StartTime: m.session.StartTime,
+		Duration:  m.session.Duration,
+		Summary:   summary,
+	})
 	m.stopCh <- true
 }
 
