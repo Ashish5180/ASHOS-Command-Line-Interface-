@@ -54,6 +54,14 @@ var (
 
 	GrayStyle = lipgloss.NewStyle().
 			Foreground(GrayColor)
+
+	ErrorStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF0000")).
+			Bold(true)
+
+	SuccessStyle = lipgloss.NewStyle().
+			Foreground(SecondaryColor).
+			Bold(true)
 )
 
 func MakeBox(title string, content string, style lipgloss.Style) string {

@@ -107,24 +107,59 @@ Focus Today:   3h 45m
 
 ---
 
-## 🧠 6. AI Brain (RAG)
-The intelligence layer that knows everything about your tasks, notes, and sprints.
+## 🧠 6. AI Brain (Intelligence Layer)
+The intelligence layer that analyzes your tasks, focus sessions, notes, and sprints to provide deep insights.
 
 | Command | Description |
 |---|---|
-| `ash ai ask <query>` | Ask anything about your data (tasks, sessions, notes). |
-| `ash ai standup` | Automatically generate a daily standup based on recent activity. |
-| `ash ai suggest` | AI analyzes your patterns to suggest the most logical next task. |
+| `ash ai ask <query>` | Ask about your data. **NEW**: Use `--local` for offline mode (Ollama). |
+| `ash ai standup` | Interactively generate a standup and copy it to your clipboard (`pbcopy`). |
+| `ash ai suggest` | Structured suggestions with reasoning and productivity tips. |
+| `ash ai daily-digest` | Advanced behavioral analysis and productivity scores. |
+| `ash ai reingest` | **NEW**: Force re-sync of all tasks, notes, etc. into vector store. |
 
-### Example
+### Example: Offline Mode (Local LLM)
 ```bash
-$ ./ash ai ask "What did I learn about my morning productivity?"
+$ ash ai ask "summary" --local
+🚀 AI Brain: Switched to Local Mode (Ollama)
+```
+
+### Example: Retrieval Scores
+```bash
+$ ash ai ask "What was I doing last Tuesday?"
 🧠 ASHOS AI BRAIN IS THINKING...
+
+Retrieved Context (Relevance Scores):
+  → "Database refactor task"     [94% match]
+  → "SQLite engine focus session" [87% match]  
+
 🤖 AI RESPONSE
-Based on your journal entry from this morning, you noted that your 
-DEEP WORK IS MOST EFFECTIVE BEFORE 11 AM, showing nearly 2x 
-productivity compared to evening sessions. Focus your high-intensity 
-tasks in this window.
+Last Tuesday you were primarily working on the database refactor...
+```
+
+### Example: Daily Digest
+```bash
+$ ash ai daily-digest
+📊 GENERATING DAILY INTELLIGENCE...
+
+📊 ASHOS Daily Intelligence — March 21
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Productivity Score : 82/100 📈
+Focus Time         : 3h 12m
+Tasks Completed    : 4/10
+AI Queries Made    : 5 (est)
+
+💡 Insight: "Your work sessions are lengthening. Consider 
+   shorter breaks to maintain this high baseline."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Example: Manual Re-ingestion
+```bash
+$ ash ai reingest --type tasks
+🧠 Re-ingesting TASKS...
+🧠 AI Brain: Ingesting task 'Finalize OS Intelligence'...
+✅ Re-ingestion complete!
 ```
 
 ---
@@ -142,5 +177,41 @@ The full terminal command center.
 - `Ctrl+C`: Force quit
 
 ---
+
+## 🛠️ How to Check New Changes
+
+To verify the new AI improvements, follow these steps:
+
+1. **Rebuild the project**:
+   ```bash
+   go build -o ash main.go
+   ```
+   *If you encounter permission errors, try `go run main.go` instead:*
+   ```bash
+   go run main.go ai ask "Am I being productive today?"
+   ```
+
+2. **Test Multi-turn Memory**:
+   Run two consecutive queries to see if the AI remembers the context:
+   ```bash
+   ./ash ai ask "What are my pending tasks?"
+   ./ash ai ask "Which one should I do first?"
+   ```
+
+3. **Test Interactive Standup**:
+   ```bash
+   ./ash ai standup
+   ```
+   Answer `y` when prompted to copy to clipboard and verify it works.
+
+4. **Test Smart Suggestions**:
+   ```bash
+   ./ash ai suggest
+   ```
+
+5. **Test Daily Intelligence Digest**:
+   ```bash
+   ./ash ai daily-digest
+   ```
 
 **Tip**: Always use `./ash --help` to see the most up-to-date command tree.

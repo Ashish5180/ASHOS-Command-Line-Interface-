@@ -18,11 +18,46 @@ func NewSQLiteRepository(db *sql.DB) (Repository, error) {
 		return nil, fmt.Errorf("database connection is nil")
 	}
 
+	// Schema detection: Check if tables exist and have new columns
+	schemaMismatch := false
+	checkTables := []string{"ai_embeddings", "ai_embeddings_fallback"}
+	for _, table := range checkTables {
+		rows, err := db.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+		if err == nil {
+			hasHash := false
+			count := 0
+			for rows.Next() {
+				count++
+				var cid int
+				var name, dtype string
+				var notnull, pk int
+				var dflt any
+				if err := rows.Scan(&cid, &name, &dtype, &notnull, &dflt, &pk); err == nil {
+					if name == "content_hash" {
+						hasHash = true
+					}
+				}
+			}
+			rows.Close()
+			if count > 0 && !hasHash {
+				schemaMismatch = true
+			}
+		}
+	}
+
+	if schemaMismatch {
+		fmt.Println("🔄 AI Brain: Old schema detected. Upgrading vector store...")
+		db.Exec("DROP TABLE IF EXISTS ai_embeddings")
+		db.Exec("DROP TABLE IF EXISTS ai_embeddings_fallback")
+	}
+
 	// Try to initialize sqlite-vec table
 	schema := `
 	CREATE VIRTUAL TABLE IF NOT EXISTS ai_embeddings USING vec0(
 		collection TEXT,
-		key TEXT,
+		source_id TEXT,
+		source_type TEXT,
+		content_hash TEXT,
 		content TEXT,
 		metadata TEXT,
 		created_at TEXT,
@@ -31,16 +66,17 @@ func NewSQLiteRepository(db *sql.DB) (Repository, error) {
 
 	if _, err := db.Exec(schema); err != nil {
 		// Fallback to standard table if vec0 is not available
-		// Logged silently or as debug for clean CLI
 		fallbackSchema := `
 		CREATE TABLE IF NOT EXISTS ai_embeddings_fallback (
 			collection TEXT,
-			key TEXT,
+			source_id TEXT,
+			source_type TEXT,
+			content_hash TEXT,
 			content TEXT,
 			metadata TEXT,
 			created_at TEXT,
 			embedding BLOB,
-			PRIMARY KEY (collection, key)
+			PRIMARY KEY (content_hash)
 		);`
 		if _, err := db.Exec(fallbackSchema); err != nil {
 			return nil, fmt.Errorf("failed to initialize fallback table: %w", err)
@@ -90,18 +126,41 @@ func (r *sqliteRepo) SaveEmbedding(ctx context.Context, record EmbeddingRecord, 
 		tableName = "ai_embeddings_fallback"
 	}
 
-	query := fmt.Sprintf(`INSERT OR REPLACE INTO %s(collection, key, content, metadata, created_at, embedding) 
-	          VALUES (?, ?, ?, ?, ?, ?)`, tableName)
+	query := fmt.Sprintf(`INSERT OR REPLACE INTO %s(collection, source_id, source_type, content_hash, content, metadata, created_at, embedding) 
+	          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, tableName)
 	
 	_, err := r.db.ExecContext(ctx, query, 
 		record.Collection, 
-		record.Key, 
+		record.SourceID,
+		record.SourceType,
+		record.ContentHash,
 		record.Content, 
 		record.Metadata, 
 		record.CreatedAt.Format(time.RFC3339),
 		embData,
 	)
 	return err
+}
+
+func (r *sqliteRepo) GetRecordByHash(ctx context.Context, hash string) (*EmbeddingRecord, error) {
+	tableName := "ai_embeddings"
+	if r.isFallback {
+		tableName = "ai_embeddings_fallback"
+	}
+	query := fmt.Sprintf(`SELECT collection, source_id, source_type, content_hash, content, metadata, created_at FROM %s WHERE content_hash = ?`, tableName)
+	row := r.db.QueryRowContext(ctx, query, hash)
+	
+	var rec EmbeddingRecord
+	var createdAtStr string
+	err := row.Scan(&rec.Collection, &rec.SourceID, &rec.SourceType, &rec.ContentHash, &rec.Content, &rec.Metadata, &createdAtStr)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	rec.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
+	return &rec, nil
 }
 
 func (r *sqliteRepo) SearchEmbeddings(ctx context.Context, embedding []float32, limit int) ([]EmbeddingRecord, error) {
@@ -111,7 +170,7 @@ func (r *sqliteRepo) SearchEmbeddings(ctx context.Context, embedding []float32, 
 
 	embData := r.serializeEmbedding(embedding)
 	query := `
-		SELECT collection, key, content, metadata, created_at
+		SELECT collection, source_id, source_type, content_hash, content, metadata, created_at, distance
 		FROM ai_embeddings
 		WHERE embedding MATCH ?
 		ORDER BY distance
@@ -123,11 +182,25 @@ func (r *sqliteRepo) SearchEmbeddings(ctx context.Context, embedding []float32, 
 	}
 	defer rows.Close()
 
-	return r.scanRows(rows)
+	var records []EmbeddingRecord
+	for rows.Next() {
+		var rec EmbeddingRecord
+		var createdAtStr string
+		var distance float64
+		if err := rows.Scan(&rec.Collection, &rec.SourceID, &rec.SourceType, &rec.ContentHash, &rec.Content, &rec.Metadata, &createdAtStr, &distance); err != nil {
+			return nil, err
+		}
+		rec.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
+		// Convert distance to score (vec0 distance is squared L2 distance usually, but for match it might be different)
+		// For display, we'll try to normalize it.
+		rec.Score = 1.0 / (1.0 + distance)
+		records = append(records, rec)
+	}
+	return records, nil
 }
 
 func (r *sqliteRepo) searchFallback(ctx context.Context, queryEmb []float32, limit int) ([]EmbeddingRecord, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT collection, key, content, metadata, created_at, embedding FROM ai_embeddings_fallback`)
+	rows, err := r.db.QueryContext(ctx, `SELECT collection, source_id, source_type, content_hash, content, metadata, created_at, embedding FROM ai_embeddings_fallback`)
 	if err != nil {
 		return nil, err
 	}
@@ -143,13 +216,14 @@ func (r *sqliteRepo) searchFallback(ctx context.Context, queryEmb []float32, lim
 		var rec EmbeddingRecord
 		var createdAtStr string
 		var embData []byte
-		if err := rows.Scan(&rec.Collection, &rec.Key, &rec.Content, &rec.Metadata, &createdAtStr, &embData); err != nil {
+		if err := rows.Scan(&rec.Collection, &rec.SourceID, &rec.SourceType, &rec.ContentHash, &rec.Content, &rec.Metadata, &createdAtStr, &embData); err != nil {
 			return nil, err
 		}
 		rec.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
 		
 		itemEmb := r.deserializeEmbedding(embData)
 		score := r.cosineSimilarity(queryEmb, itemEmb)
+		rec.Score = score
 		scored = append(scored, scoredRecord{rec, score})
 	}
 
@@ -186,7 +260,7 @@ func (r *sqliteRepo) scanRows(rows *sql.Rows) ([]EmbeddingRecord, error) {
 	for rows.Next() {
 		var rec EmbeddingRecord
 		var createdAtStr string
-		if err := rows.Scan(&rec.Collection, &rec.Key, &rec.Content, &rec.Metadata, &createdAtStr); err != nil {
+		if err := rows.Scan(&rec.Collection, &rec.SourceID, &rec.SourceType, &rec.ContentHash, &rec.Content, &rec.Metadata, &createdAtStr); err != nil {
 			return nil, err
 		}
 		rec.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
@@ -201,7 +275,7 @@ func (r *sqliteRepo) GetRecentActions(ctx context.Context, limit int) ([]Embeddi
 		tableName = "ai_embeddings_fallback"
 	}
 	query := fmt.Sprintf(`
-		SELECT collection, key, content, metadata, created_at
+		SELECT collection, source_id, source_type, content_hash, content, metadata, created_at
 		FROM %s
 		ORDER BY created_at DESC
 		LIMIT ?`, tableName)

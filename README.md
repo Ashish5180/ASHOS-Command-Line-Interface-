@@ -103,20 +103,34 @@ Full CRUD lifecycle via CLI.
 
 ### 4. Interactive Dashboard (TUI)
 
+Built with **Bubble Tea** (Elm architecture).
 | Command | Description |
 |---|---|
 | `ash dash` | Launch the interactive dashboard |
 
-Built with **Bubble Tea** (Elm architecture).
-
 **Features:**
-
 - **Two-panel layout** — Tasks panel + System stats panel
 - **Focus status indicator** — Shows `FOCUSING...` when active
 - **Auto-refresh** — Updates every 5 seconds via `tea.Tick`
-- **Responsive layout** — Side-by-side above 60 cols, stacked below
-- **Keyboard shortcuts** — `q` to quit, `r` to manual refresh
-- **Styled UI** — Custom color palette (purple, green, pink) with `lipgloss` rounded borders
+
+---
+
+### 5. AI Brain (Intelligence Layer)
+ASHOS includes a powerful RAG-based AI system that analyzes your productivity data.
+
+| Command | Description |
+|---|---|
+| `ash ai ask <query>` | Context-aware Q&A with relevance scores |
+| `ash ai daily-digest` | **NEW**: Advanced behavioral analysis and productivity scores |
+| `ash ai standup` | Auto-generate professional daily standups from logs |
+| `ash ai suggest` | Smart task recommendations based on historical patterns |
+
+**Engineering Highlights:**
+- **Vector Search (RAG)**: Uses `sqlite-vec` (vec0) for local vector embeddings and similarity search.
+- **Content Deduplication**: MD5-based hashing prevents duplicate embedding of unchanged content.
+- **Local Fallback**: Supports **Ollama** (`llama3.2`) for offline intelligence via the `--local` flag.
+- **Conversation Memory**: Maintains state for multi-turn dialogues (last 10 turns).
+- **Graceful Health Checks**: Automatically pings local LLM and falls back to cloud if unavailable.
 
 ---
 
@@ -152,8 +166,8 @@ Built with **Bubble Tea** (Elm architecture).
 │  └─────────────────────────────┘         │
 │                                          │
 │  ┌────────────┐  ┌──────────────┐        │
-│  │  system/   │  │    ui/       │        │
-│  │  Service   │  │  Dashboard   │        │
+│  │  system/   │  │    ai/       │        │
+│  │  Service   │  │  Brain (RAG) │        │
 │  └────────────┘  └──────────────┘        │
 │                                          │
 │      📡  internal/core/event             │ ← Event Bus
@@ -664,16 +678,19 @@ ash run morning.ash
 - [x] Interface-driven storage abstraction
 - [x] Concurrency-safe state management
 
-### Phase 2 — Intelligence
+### Phase 2 — Intelligence (Completed)
 
 - [x] SQLite storage engine
 - [x] Event bus system
 - [x] Focus analytics engine
-- [ ] Unit test suite (leveraging `memoryStore`)
+- [x] RAG-based AI Brain (OpenAI + Ollama)
+- [x] Vector deduplication & schema versioning
+- [x] Behavioral Daily Digest
 
-### Phase 3 — Productivity
+### Phase 3 — Productivity (In Progress)
 
-- [ ] Sprint mode
+- [x] Manual Re-ingestion tool
+- [x] Sprint mode (Partial)
 - [ ] Plugin system
 - [ ] System monitoring module (`ash sys`)
 - [ ] DSL scripting (`ash run`)

@@ -81,7 +81,7 @@ func (m *Manager) StopSession(summary string) {
 	m.session.IsActive = false
 	m.session.mu.Unlock()
 
-	m.saveSession()
+	m.saveSession(summary)
 	m.bus.Publish(event.FocusEnded{
 		StartTime: m.session.StartTime,
 		Duration:  m.session.Duration,
@@ -90,11 +90,12 @@ func (m *Manager) StopSession(summary string) {
 	m.stopCh <- true
 }
 
-func (m *Manager) saveSession() {
+func (m *Manager) saveSession(summary string) {
 	m.session.mu.Lock()
 	record := SessionRecord{
 		StartTime: m.session.StartTime,
 		Duration:  m.session.Duration,
+		Summary:   summary,
 	}
 	m.session.mu.Unlock()
 
@@ -102,6 +103,12 @@ func (m *Manager) saveSession() {
 	_ = m.store.Get(context.Background(), "focus_data", "sessions", &sessions)
 	sessions = append(sessions, record)
 	_ = m.store.Save(context.Background(), "focus_data", "sessions", sessions)
+}
+
+func (m *Manager) ListSessions(ctx context.Context) ([]SessionRecord, error) {
+	var sessions []SessionRecord
+	err := m.store.Get(ctx, "focus_data", "sessions", &sessions)
+	return sessions, err
 }
 
 // GetStats returns current session duration.
