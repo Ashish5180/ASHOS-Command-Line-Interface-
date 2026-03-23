@@ -127,8 +127,16 @@ func aiCmd(app *App) *cobra.Command {
 		Use:   "reingest",
 		Short: "Force re-ingestion of data into AI vector store",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if local {
+				app.AIService.SetLocalMode(true)
+			}
 			ctx := context.Background()
 			
+			if reingestAll {
+				fmt.Println("🧠 Clearing vector store for full re-sync...")
+				app.AIService.Reset(ctx)
+			}
+
 			if reingestAll || reingestType == "tasks" {
 				fmt.Println("🧠 Re-ingesting TASKS...")
 				tasks, _ := app.TaskService.ListTasks()
@@ -167,6 +175,7 @@ func aiCmd(app *App) *cobra.Command {
 	}
 	reingest.Flags().BoolVarP(&reingestAll, "all", "a", false, "Re-ingest everything")
 	reingest.Flags().StringVarP(&reingestType, "type", "t", "", "Re-ingest specific type (tasks, notes, focus, sprints)")
+	reingest.Flags().BoolVarP(&local, "local", "l", false, "Use local LLM (Ollama) for re-ingestion")
 
 	ai.AddCommand(ask, standup, suggest, digest, reingest)
 	return ai

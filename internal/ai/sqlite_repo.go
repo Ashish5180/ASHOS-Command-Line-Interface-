@@ -11,7 +11,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-
 // NewSQLiteRepository creates a new AI repository using the provided database.
 func NewSQLiteRepository(db *sql.DB) (Repository, error) {
 	if db == nil {
@@ -128,14 +127,14 @@ func (r *sqliteRepo) SaveEmbedding(ctx context.Context, record EmbeddingRecord, 
 
 	query := fmt.Sprintf(`INSERT OR REPLACE INTO %s(collection, source_id, source_type, content_hash, content, metadata, created_at, embedding) 
 	          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, tableName)
-	
-	_, err := r.db.ExecContext(ctx, query, 
-		record.Collection, 
+
+	_, err := r.db.ExecContext(ctx, query,
+		record.Collection,
 		record.SourceID,
 		record.SourceType,
 		record.ContentHash,
-		record.Content, 
-		record.Metadata, 
+		record.Content,
+		record.Metadata,
 		record.CreatedAt.Format(time.RFC3339),
 		embData,
 	)
@@ -149,7 +148,7 @@ func (r *sqliteRepo) GetRecordByHash(ctx context.Context, hash string) (*Embeddi
 	}
 	query := fmt.Sprintf(`SELECT collection, source_id, source_type, content_hash, content, metadata, created_at FROM %s WHERE content_hash = ?`, tableName)
 	row := r.db.QueryRowContext(ctx, query, hash)
-	
+
 	var rec EmbeddingRecord
 	var createdAtStr string
 	err := row.Scan(&rec.Collection, &rec.SourceID, &rec.SourceType, &rec.ContentHash, &rec.Content, &rec.Metadata, &createdAtStr)
@@ -220,7 +219,7 @@ func (r *sqliteRepo) searchFallback(ctx context.Context, queryEmb []float32, lim
 			return nil, err
 		}
 		rec.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-		
+
 		itemEmb := r.deserializeEmbedding(embData)
 		score := r.cosineSimilarity(queryEmb, itemEmb)
 		rec.Score = score
@@ -287,4 +286,13 @@ func (r *sqliteRepo) GetRecentActions(ctx context.Context, limit int) ([]Embeddi
 	defer rows.Close()
 
 	return r.scanRows(rows)
+}
+
+func (r *sqliteRepo) Reset(ctx context.Context) error {
+	tableName := "ai_embeddings"
+	if r.isFallback {
+		tableName = "ai_embeddings_fallback"
+	}
+	_, err := r.db.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s", tableName))
+	return err
 }

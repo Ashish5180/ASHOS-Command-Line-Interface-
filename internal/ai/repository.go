@@ -10,4 +10,5 @@ type Repository interface {
 	GetRecordByHash(ctx context.Context, hash string) (*EmbeddingRecord, error)
 	SearchEmbeddings(ctx context.Context, embedding []float32, limit int) ([]EmbeddingRecord, error)
 	GetRecentActions(ctx context.Context, limit int) ([]EmbeddingRecord, error)
+	Reset(ctx context.Context) error
 }

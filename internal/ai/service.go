@@ -451,6 +451,13 @@ func (s *service) generateEmbedding(ctx context.Context, text string) ([]float32
 	return resp.Data[0].Embedding, nil
 }
 
+func (s *service) Reset(ctx context.Context) error {
+	if s.repo == nil {
+		return nil
+	}
+	return s.repo.Reset(ctx)
+}
+
 type Service interface {
 	Ask(ctx context.Context, query string) (string, []EmbeddingRecord, error)
 	GenerateStandup(ctx context.Context) (string, error)
@@ -461,4 +468,5 @@ type Service interface {
 	IngestFocusSession(ctx context.Context, startTime time.Time, duration time.Duration, summary string) error
 	IngestNote(ctx context.Context, noteID int, content string) error
 	IngestSprint(ctx context.Context, sprintID int, title, summary string) error
+	Reset(ctx context.Context) error
 }
