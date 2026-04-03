@@ -9,6 +9,7 @@ import (
 	"ashos/internal/core/event"
 	"ashos/internal/focus"
 	"ashos/internal/note"
+	"ashos/internal/slack"
 	"ashos/internal/sprint"
 	"ashos/internal/storage"
 	"ashos/internal/system"
@@ -37,6 +38,7 @@ func main() {
 	focusManager := focus.NewManager(store, bus)
 	noteService := note.NewService(store, bus)
 	sprintService := sprint.NewService(store, bus)
+	slackService := slack.NewService(store, bus)
 
 	// 4. AI Module — RAG on Your Own Data
 	var db *sql.DB
@@ -78,6 +80,7 @@ func main() {
 		NoteService:   noteService,
 		SprintService: sprintService,
 		AIService:     aiService,
+		SlackService:  slackService,
 	}
 
 	// 5. Wire commands — inject dependencies into command tree

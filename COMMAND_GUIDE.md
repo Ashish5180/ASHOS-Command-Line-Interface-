@@ -164,7 +164,31 @@ $ ash ai reingest --type tasks
 
 ---
 
-## 🏎️ 7. Interactive Dashboard
+## 🪸 7. Slack Integration
+Connect ASHOS to your Slack workspace for automated updates and remote control.
+
+| Command | Description |
+|---|---|
+| `ash slack connect --token <T> --channel <C>` | Link your Slack bot to a specific channel. |
+| `ash slack send "<message>"` | Send a manual message to the linked channel. |
+| `ash slack list` | View the last 5 messages from the channel. |
+
+### Automated features
+- **Task Updates**: Automatically posts to Slack when you complete a task.
+- **Focus Sessions**: Posts session summaries when you finish focusing.
+
+### Example
+```bash
+$ ./ash slack connect --token "xoxb-..." --channel "C012345678"
+✅ Slack successfully linked. Ready to interact.
+
+$ ./ash slack send "Starting my deep work now!"
+🚀 Message sent to Slack.
+```
+
+---
+
+## 🏎️ 8. Interactive Dashboard
 The full terminal command center.
 
 | Command | Description |

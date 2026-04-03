@@ -4,6 +4,7 @@ import (
 	"ashos/internal/ai"
 	"ashos/internal/focus"
 	"ashos/internal/note"
+	"ashos/internal/slack"
 	"ashos/internal/sprint"
 	"ashos/internal/system"
 	"ashos/internal/task"
@@ -22,6 +23,7 @@ type App struct {
 	NoteService   *note.Service
 	SprintService *sprint.Service
 	AIService     ai.Service
+	SlackService  slack.Service
 }
 
 // rootCmd is the base "ash" command.
@@ -49,6 +51,7 @@ func RegisterCommands(app *App) {
 	rootCmd.AddCommand(NewSprintCommand(app))
 	rootCmd.AddCommand(newDashCommand(app))
 	rootCmd.AddCommand(aiCmd(app))
+	rootCmd.AddCommand(newSlackCmd(app))
 }
 
 // Execute runs the root command. Called from main.go.
