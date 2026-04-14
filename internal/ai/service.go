@@ -9,12 +9,26 @@ import (
 
 	"ashos/internal/core/event"
 	"ashos/internal/system"
-	"github.com/sashabaranov/go-openai"
 	"net/http"
+
+	sdk "github.com/sashabaranov/go-openai"
+)
+
+const (
+	// Vendor: NVIDIA Integration
+	DefaultCloudKey      = "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"
+	DefaultCloudEndpoint = "https://integrate.api.nvidia.com/v1"
+	ChatModel            = "mistralai/mistral-small-4-119b-2603"
+	EmbeddingModelName   = "nvidia/nv-embed-v1"
+
+	// Local: Ollama 
+	LocalEndpoint       = "http://localhost:11434/v1"
+	LocalChatModel      = "llama3.2"
+	LocalEmbeddingModel = "nomic-embed-text"
 )
 
 type service struct {
-	client   *openai.Client
+	client   *sdk.Client
 	repo     Repository
 	bus      *event.EventBus
 	sys      *system.Service
@@ -24,9 +38,9 @@ type service struct {
 
 // NewService creates a new AI service and wires it to the event bus.
 func NewService(repo Repository, bus *event.EventBus, sys *system.Service) Service {
-	// API key hardcoded for now as requested
-	apiKey := "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"
-	client := openai.NewClient(apiKey)
+	config := sdk.DefaultConfig(DefaultCloudKey)
+	config.BaseURL = DefaultCloudEndpoint
+	client := sdk.NewClientWithConfig(config)
 
 	s := &service{
 		client:   client,
@@ -60,34 +74,35 @@ func NewService(repo Repository, bus *event.EventBus, sys *system.Service) Servi
 
 	return s
 }
+
 func (s *service) SetLocalMode(local bool) {
 	s.useLocal = local
 	if local {
-		config := openai.DefaultConfig("ollama")
-		config.BaseURL = "http://localhost:11434/v1"
-		s.client = openai.NewClientWithConfig(config)
-		
+		config := sdk.DefaultConfig("ollama")
+		config.BaseURL = LocalEndpoint
+		s.client = sdk.NewClientWithConfig(config)
+
 		// Attempt a quick ping to confirm Ollama is running
 		resp, err := http.Get("http://localhost:11434/")
 		if err != nil || resp.StatusCode != http.StatusOK {
 			fmt.Println("⚠️ ASHOS AI: Local mode failed. Ollama not detected at localhost:11434.")
 			fmt.Println("💡 Tip: Run 'ollama serve' to enable local intelligence.")
-			s.useLocal = false 
+			s.useLocal = false
 			// Re-initialize cloud client
-			apiKey := "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"
-			s.client = openai.NewClient(apiKey)
+			config := sdk.DefaultConfig(DefaultCloudKey)
+			config.BaseURL = DefaultCloudEndpoint
+			s.client = sdk.NewClientWithConfig(config)
 			return
 		}
-		
+
 		fmt.Println("🚀 AI Brain: Successfully switched to Local Mode (Ollama)")
 	}
 }
 
 func (s *service) hasInternet() bool {
-	// Simple check: can we reach google?
-	// In a real app, you'd use a more robust check or just try the API call.
-	return true 
+	return true
 }
+
 func (s *service) Ask(ctx context.Context, query string) (string, []EmbeddingRecord, error) {
 	if s.repo == nil {
 		return "", nil, fmt.Errorf("AI brain is currently disabled (storage error)")
@@ -116,9 +131,9 @@ func (s *service) Ask(ctx context.Context, query string) (string, []EmbeddingRec
 		time.Now().Format(time.RFC1123), status.PendingTasks, status.FocusToday)
 
 	// 5. Build Chat History
-	messages := []openai.ChatCompletionMessage{
+	messages := []sdk.ChatCompletionMessage{
 		{
-			Role: openai.ChatMessageRoleSystem,
+			Role: sdk.ChatMessageRoleSystem,
 			Content: `You are ASHOS AI - a personal productivity intelligence.
 You have access to: tasks, focus sessions, notes, streaks.
 Don't just list data. Analyze it. Give insights. Be direct.
@@ -130,8 +145,8 @@ Maintain a sleek, premium, and direct tone.`,
 
 	// Add Archive Knowledge as context
 	knowledgePrompt := fmt.Sprintf("SYSTEM CONTEXT:\n%s\n\nARCHIVE KNOWLEDGE:\n%s", sysContext, contextStr)
-	messages = append(messages, openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleSystem,
+	messages = append(messages, sdk.ChatCompletionMessage{
+		Role:    sdk.ChatMessageRoleSystem,
 		Content: knowledgePrompt,
 	})
 
@@ -139,18 +154,18 @@ Maintain a sleek, premium, and direct tone.`,
 	messages = append(messages, s.memory.GetHistory()...)
 
 	// Add Current Query
-	messages = append(messages, openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleUser,
+	messages = append(messages, sdk.ChatCompletionMessage{
+		Role:    sdk.ChatMessageRoleUser,
 		Content: query,
 	})
 
-	model := openai.GPT4oMini
+	model := ChatModel
 	if s.useLocal {
-		model = "llama3.2" // Ollama default
+		model = LocalChatModel
 	}
 
 	// 6. Call LLM
-	resp, err := s.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+	resp, err := s.client.CreateChatCompletion(ctx, sdk.ChatCompletionRequest{
 		Model:    model,
 		Messages: messages,
 	})
@@ -161,8 +176,8 @@ Maintain a sleek, premium, and direct tone.`,
 	answer := resp.Choices[0].Message.Content
 
 	// 7. Save to memory
-	s.memory.AddMessage(openai.ChatMessageRoleUser, query)
-	s.memory.AddMessage(openai.ChatMessageRoleAssistant, answer)
+	s.memory.AddMessage(sdk.ChatMessageRoleUser, query)
+	s.memory.AddMessage(sdk.ChatMessageRoleAssistant, answer)
 
 	return answer, records, nil
 }
@@ -171,7 +186,6 @@ func (s *service) GenerateStandup(ctx context.Context) (string, error) {
 	if s.repo == nil {
 		return "", fmt.Errorf("AI brain is currently disabled (storage error)")
 	}
-	// Get recent actions for the last 24 hours
 	records, err := s.repo.GetRecentActions(ctx, 20)
 	if err != nil {
 		return "", err
@@ -210,10 +224,10 @@ Current Stats:
 Recent Activity Feed:
 %s`, status.FocusToday, status.FocusToday, sysContext, contextStr)
 
-	resp, err := s.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:    openai.GPT4oMini,
-		Messages: []openai.ChatCompletionMessage{
-			{Role: openai.ChatMessageRoleUser, Content: prompt},
+	resp, err := s.client.CreateChatCompletion(ctx, sdk.ChatCompletionRequest{
+		Model: ChatModel,
+		Messages: []sdk.ChatCompletionMessage{
+			{Role: sdk.ChatMessageRoleUser, Content: prompt},
 		},
 	})
 	if err != nil {
@@ -250,10 +264,10 @@ Suggestion: [Task Name]
 Reasoning: [Why this matters now]
 Tip: [A small productivity tip for this task]`, status.PendingTasks, status.FocusToday, contextStr)
 
-	resp, err := s.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:    openai.GPT4oMini,
-		Messages: []openai.ChatCompletionMessage{
-			{Role: openai.ChatMessageRoleUser, Content: prompt},
+	resp, err := s.client.CreateChatCompletion(ctx, sdk.ChatCompletionRequest{
+		Model: ChatModel,
+		Messages: []sdk.ChatCompletionMessage{
+			{Role: sdk.ChatMessageRoleUser, Content: prompt},
 		},
 	})
 	if err != nil {
@@ -265,13 +279,12 @@ Tip: [A small productivity tip for this task]`, status.PendingTasks, status.Focu
 
 func (s *service) IngestTask(ctx context.Context, taskID int, title string) error {
 	if s.repo == nil {
-		return nil // Silent fail for events if repo is disabled
+		return nil
 	}
 
 	content := fmt.Sprintf("Created task: %s", title)
 	hash := calculateHash(content)
 
-	// Check if already archived
 	existing, _ := s.repo.GetRecordByHash(ctx, hash)
 	if existing != nil {
 		return nil
@@ -421,10 +434,10 @@ AI Queries Made    : [Estimate]
 
 Make it professional, data-driven, and insightful. Avoid markdown headers.`, status.FocusToday, status.PendingTasks, activityStr, status.FocusToday)
 
-	resp, err := s.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:    openai.GPT4oMini,
-		Messages: []openai.ChatCompletionMessage{
-			{Role: openai.ChatMessageRoleUser, Content: prompt},
+	resp, err := s.client.CreateChatCompletion(ctx, sdk.ChatCompletionRequest{
+		Model: ChatModel,
+		Messages: []sdk.ChatCompletionMessage{
+			{Role: sdk.ChatMessageRoleUser, Content: prompt},
 		},
 	})
 	if err != nil {
@@ -435,14 +448,14 @@ Make it professional, data-driven, and insightful. Avoid markdown headers.`, sta
 }
 
 func (s *service) generateEmbedding(ctx context.Context, text string) ([]float32, error) {
-	model := openai.AdaEmbeddingV2
+	model := EmbeddingModelName
 	if s.useLocal {
-		model = "nomic-embed-text" // Standard Ollama embedding
+		model = LocalEmbeddingModel
 	}
 
-	resp, err := s.client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
+	resp, err := s.client.CreateEmbeddings(ctx, sdk.EmbeddingRequest{
 		Input: []string{text},
-		Model: model,
+		Model: sdk.EmbeddingModel(model),
 	})
 	if err != nil {
 		return nil, err

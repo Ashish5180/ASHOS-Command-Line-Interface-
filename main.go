@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"ashos/cmd"
 	"ashos/internal/ai"
@@ -14,17 +16,33 @@ import (
 	"ashos/internal/storage"
 	"ashos/internal/system"
 	"ashos/internal/task"
-	"database/sql"
-	"time"
 )
 
 func main() {
-	// 1. Storage engine — Ab hum SQLite use kar rahe hain
-	store, err := storage.NewSQLiteStore("data/ashos.db")
+	// 1. Storage engine
+	localStore, err := storage.NewSQLiteStore("data/ashos.db")
 	if err != nil {
 		fmt.Println("❌ Storage init failed:", err)
 		os.Exit(1)
 	}
+
+	// --- ☁️ APPWRITE CONFIG (MANUAL) ---
+	// Bhai, yahan apni details bhar do:
+	endpoint := "http://localhost/v1"
+	projectID := "69dcfde50000c78f72a5"
+	apiKey := "standard_b8eff7aa5a4460d1758312cc5d0572ef4ea2a8aa3dda5d9acf6df43566c5735d967d3020ca62a6566b28ff033edbd43db58ddc8109ff1e7213ca5384fbaef1e222877bf6f327d3da734259dbda66d3195d1bde7f9bf298be98cfd46d70d2706bd7e3ba158fdf0b492f22d8a57b5fc666fc6dd8bd59f6abbd6fa7982ba32da52c"
+	dbID := "69dd003b00190ae7eaa4"
+
+	var store storage.Store = localStore
+	if projectID != "YOUR_PROJECT_ID" {
+		fmt.Println("☁️  Appwrite Sync Enabled (Hardcoded)!")
+		cloudStore := storage.NewAppwriteStore(endpoint, projectID, apiKey, dbID)
+		store = storage.NewSyncStore(localStore, cloudStore)
+	} else {
+		fmt.Println("ℹ️  Running in Local-Only mode (Fill hardcoded variables in main.go to enable sync)")
+	}
+	// ----------------------------------
+
 	defer store.Close()
 
 	// 2. Event Bus — Central messaging system
