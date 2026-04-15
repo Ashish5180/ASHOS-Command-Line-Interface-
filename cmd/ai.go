@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"ashos/internal/storage"
 	"ashos/internal/ui"
 	"context"
 	"fmt"
@@ -121,6 +122,34 @@ func aiCmd(app *App) *cobra.Command {
 		},
 	}
 
+	var syncWeeklyCmd = &cobra.Command{
+		Use:   "weekly-sync",
+		Short: "Sync and summarize your weekly progress locally and to the cloud",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("⏳ Starting Appwrite weekly sync and brain update...")
+
+			// Appwrite config (Inhe ek jagah define karna better hota hai, but filhal main.go wale use kar rahe hain)
+			endpoint := "http://localhost/v1"
+			projectID := "69dcfde50000c78f72a5"
+			apiKey := "standard_b8eff7aa5a4460d1758312cc5d0572ef4ea2a8aa3dda5d9acf6df43566c5735d967d3020ca62a6566b28ff033edbd43db58ddc8109ff1e7213ca5384fbaef1e222877bf6f327d3da734259dbda66d3195d1bde7f9bf298be98cfd46d70d2706bd7e3ba158fdf0b492f22d8a57b5fc666fc6dd8bd59f6abbd6fa7982ba32da52c"
+			dbID := "69dd003b00190ae7eaa4"
+
+			cloudStore := storage.NewAppwriteStore(endpoint, projectID, apiKey, dbID)
+
+			// Weekly Sync service initialize karein
+			// Note: cloudStore ko DataRepository interface mein cast kar rahe hain
+			syncService := storage.NewWeeklySyncService(cloudStore.(storage.DataRepository), app.AIService)
+
+			// Sync run karein
+			err := syncService.RunWeeklySync()
+			if err != nil {
+				fmt.Printf("❌ Sync failed: %v\n", err)
+				return err
+			}
+
+			return nil
+		},
+	}
 	var reingestAll bool
 	var reingestType string
 	reingest := &cobra.Command{
@@ -131,7 +160,7 @@ func aiCmd(app *App) *cobra.Command {
 				app.AIService.SetLocalMode(true)
 			}
 			ctx := context.Background()
-			
+
 			if reingestAll {
 				fmt.Println("🧠 Clearing vector store for full re-sync...")
 				app.AIService.Reset(ctx)
@@ -177,7 +206,7 @@ func aiCmd(app *App) *cobra.Command {
 	reingest.Flags().StringVarP(&reingestType, "type", "t", "", "Re-ingest specific type (tasks, notes, focus, sprints)")
 	reingest.Flags().BoolVarP(&local, "local", "l", false, "Use local LLM (Ollama) for re-ingestion")
 
-	ai.AddCommand(ask, standup, suggest, digest, reingest)
+	ai.AddCommand(ask, standup, suggest, digest, syncWeeklyCmd, reingest)
 	return ai
 }
 

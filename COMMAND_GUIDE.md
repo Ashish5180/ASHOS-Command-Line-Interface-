@@ -1,241 +1,119 @@
-# 📖 ASHOS Command Guide
+# 📖 ASHOS Professional Command Guide
 
-Welcome to the **ASHOS Official Command Guide**. This document outlines every command available in the Personal CLI Operating System, its purpose, and example usage with responses.
-
----
-
-## 🏗️ 1. Task Management
-Handle your daily tasks with RAG-integrated CRUD operations.
-
-| Command | Description |
-|---|---|
-| `ash task add <title>` | Create a new task. Automatically ingested into AI Brain. |
-| `ash task list` | View all pending and completed tasks. |
-| `ash task done <id>` | Mark a specific task as completed. |
-| `ash task delete <id>` | Permanently remove a task from the database. |
-
-### Example
-```bash
-$ ./ash task add "Refactor storage layer"
-🧠 AI Brain: Ingesting task 'Refactor storage layer'...
-✅ Task added.
-
-$ ./ash task list
-[1] [ ] Refactor storage layer
-```
+Welcome to the **ASHOS Official Command Interface (OCI)** documentation. This guide provides a comprehensive breakdown of all available directives within your terminal-native personal operating system.
 
 ---
 
-## ⏱️ 2. Focus Mode
-Deep work tracking with behavioral analysis.
+## 🏗️ 1. Task Orchestration
+*Manage your productivity lifecycle with interface-driven CRUD operations.*
 
-| Command | Description |
-|---|---|
-| `ash focus start` | Start a focus session. It will prompt for a summary on exit. |
-| `ash focus analytics` | Show ASCII charts and productivity heatmap for the last 7 days. |
+| Command | Action | AI Impact |
+|:---|:---|:---|
+| `ash task add <title>` | Initializes a new task | Immediate Vector Ingestion |
+| `ash task list` | Renders a prioritized list | Context retrieval |
+| `ash task done <id>` | Signs off a completion event | Productivity Scoring |
+| `ash task delete <id>` | Purges task from persistence | Memory cleaning |
 
-### Example (Session End)
+### Examples
 ```bash
-$ ./ash focus start
-🧠 Focus Session Started! Stay sharp.
-Press Ctrl+C to end focus session.
-^C
-📝 What did you focus on? (Optional): Implementing event-driven RAG
-🧠 AI Brain: Ingesting focus session (45m)...
-🔋 [Event] Focus session complete: 45m tracked. 
-Total Focus Time: 45m2s
+$ ash task add "Implement Dependency Injection in storage"
+✅ Task added. [Event: TaskCreated]
+
+$ ash task list
+ID  Status   Title
+[1] [ ]      Implement Dependency Injection in storage
 ```
 
 ---
 
-## ✍️ 3. Journaling (Notes)
-Capture personal insights, ideas, and journal entries.
+## ⏱️ 2. Deep Work & Focus
+*Quantify your concentration with behavioral tracking.*
 
-| Command | Description |
-|---|---|
-| `ash note add <text>` | Add a new journal entry. Content is vector-embedded for RAG. |
-| `ash note list` | List recent notes with timestamps. |
+| Command | Action | Analysis |
+|:---|:---|:---|
+| `ash focus start` | Launches a focus window | Real-time tracking |
+| `ash focus analytics` | Renders productivity heatmaps | Trend Forecasting |
 
-### Example
+### Focus Intelligence
+When you finish a session (`Ctrl+C`), the AI analyzes your focus summary to calculate your **Deep Work Density**.
 ```bash
-$ ./ash note add "Morning deep work is 2x more productive than evening."
-🧠 AI Brain: Ingesting journal entry...
-✍️  [Event] Personal insight archived.
-📝 Note added to your brain.
+$ ash focus analytics
+📊 ASHOS 7-DAY FOCUS DENSITY
+Mon  | ▓▓▓▓▓▓▓▓ 4h
+Tue  | ▓▓▓▓ 2h
+Insights: "Focus peaks detected on Mondays. High density sessions (>1h) increasing."
 ```
 
 ---
 
-## 🌊 4. Sprint Mode
-Summarize large work cycles and project milestones.
+## 🧠 3. Intelligence Layer (AI Brain)
+*Interact with your Personal OS Brain for data-driven insights.*
 
-| Command | Description |
-|---|---|
-| `ash sprint end` | Interactively close a sprint with summary, tasks, and time. |
-| `ash sprint list` | Review historical sprint performance. |
+| Command | Action | Mode |
+|:---|:---|:---|
+| `ash ai ask "<query>"` | RAG-based context Q&A | Cloud / Local (--local) |
+| `ash ai weekly-sync` | **[NEW]** Global database sync & personality update | Cloud Sync |
+| `ash ai daily-digest` | Strategic behavioral analysis | Comprehensive |
+| `ash ai standup` | Generates professional Slack updates | Clipboard-linked |
+| `ash ai reingest` | Force-refreshes Vector memory | Maintenance |
 
-### Example
+### 🚀 NEW: Weekly Sync Logic
+The `weekly-sync` command is the heartbeat of your AI OS. It fetches all recent notes and tasks from **Appwrite Cloud**, analyzes the week's patterns, and **updates your personality context**.
+
 ```bash
-$ ./ash sprint end
-🏆 Sprint Title: Infrastructure Week
-📝 Sprint Review Summary: Successfully migrated to event-driven RAG architecture.
-✅ Tasks Completed (number): 12
-⏱️ Total Focus Time (e.g., 2h30m): 15h
-
-🧠 AI Brain: Ingesting sprint review 'Infrastructure Week'...
-🌊 [Event] Sprint 'Infrastructure Week' closed. 
-🌊 Sprint summarized and archived in the brain.
+$ ash ai weekly-sync
+☁️  Appwrite Sync Enabled
+📂 Starting Weekly Sync (From: 2026-04-08)
+🔍 Fetching weekly notes... [3 found]
+🔍 Fetching weekly tasks... [12 found]
+🤖 Updating 'About Me' personality context...
+✨ AI Summary Generated: "Ashish is rapidly scaling ASHOS with a focus on API reliability..."
+🎉 Weekly Sync Complete!
 ```
 
 ---
 
-## 📊 5. System Status
-Quick high-level diagnostics of your Personal OS.
+## ✍️ 4. Knowledge Management (Notes)
+*Capture insights and ephemeral data points.*
 
-| Command | Description |
-|---|---|
-| `ash status` | Show uptime, pending tasks, and today's total focus time. |
-
-### Example
-```bash
-$ ./ash status
-🚀 ASHOS STATUS
-Uptime:        2h 15m
-Pending Tasks: 4 
-Focus Today:   3h 45m
-```
+| Command | Action | RAG Tier |
+|:---|:---|:---|
+| `ash note add "<text>"` | Archiving new journal entry | Semantic Search Ready |
+| `ash note list` | Sequential history review | Temporal View |
 
 ---
 
-## 🧠 6. AI Brain (Intelligence Layer)
-The intelligence layer that analyzes your tasks, focus sessions, notes, and sprints to provide deep insights.
+## 🌊 5. Project Sprints
+*Group work into high-impact execution cycles.*
 
-| Command | Description |
-|---|---|
-| `ash ai ask <query>` | Ask about your data. **NEW**: Use `--local` for offline mode (Ollama). |
-| `ash ai standup` | Interactively generate a standup and copy it to your clipboard (`pbcopy`). |
-| `ash ai suggest` | Structured suggestions with reasoning and productivity tips. |
-| `ash ai daily-digest` | Advanced behavioral analysis and productivity scores. |
-| `ash ai reingest` | **NEW**: Force re-sync of all tasks, notes, etc. into vector store. |
-
-### Example: Offline Mode (Local LLM)
-```bash
-$ ash ai ask "summary" --local
-🚀 AI Brain: Switched to Local Mode (Ollama)
-```
-
-### Example: Retrieval Scores
-```bash
-$ ash ai ask "What was I doing last Tuesday?"
-🧠 ASHOS AI BRAIN IS THINKING...
-
-Retrieved Context (Relevance Scores):
-  → "Database refactor task"     [94% match]
-  → "SQLite engine focus session" [87% match]  
-
-🤖 AI RESPONSE
-Last Tuesday you were primarily working on the database refactor...
-```
-
-### Example: Daily Digest
-```bash
-$ ash ai daily-digest
-📊 GENERATING DAILY INTELLIGENCE...
-
-📊 ASHOS Daily Intelligence — March 21
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Productivity Score : 82/100 📈
-Focus Time         : 3h 12m
-Tasks Completed    : 4/10
-AI Queries Made    : 5 (est)
-
-💡 Insight: "Your work sessions are lengthening. Consider 
-   shorter breaks to maintain this high baseline."
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-### Example: Manual Re-ingestion
-```bash
-$ ash ai reingest --type tasks
-🧠 Re-ingesting TASKS...
-🧠 AI Brain: Ingesting task 'Finalize OS Intelligence'...
-✅ Re-ingestion complete!
-```
+| Command | Action | Impact |
+|:---|:---|:---|
+| `ash sprint end` | Strategic closure of work cycle | Sprint Report Generation |
+| `ash sprint list` | Milestone review | Historical Archives |
 
 ---
 
-## 🪸 7. Slack Integration
-Connect ASHOS to your Slack workspace for automated updates and remote control.
+## 🛠️ 6. System Diagnostics
+*Process-level insights of your CLI OS.*
 
-| Command | Description |
-|---|---|
-| `ash slack connect --token <T> --channel <C>` | Link your Slack bot to a specific channel. |
-| `ash slack send "<message>"` | Send a manual message to the linked channel. |
-| `ash slack list` | View the last 5 messages from the channel. |
-
-### Automated features
-- **Task Updates**: Automatically posts to Slack when you complete a task.
-- **Focus Sessions**: Posts session summaries when you finish focusing.
-
-### Example
-```bash
-$ ./ash slack connect --token "xoxb-..." --channel "C012345678"
-✅ Slack successfully linked. Ready to interact.
-
-$ ./ash slack send "Starting my deep work now!"
-🚀 Message sent to Slack.
-```
+| Command | Action | Metric |
+|:---|:---|:---|
+| `ash status` | Brief diagnostics | Uptime, Task Latency |
+| `ash dash` | Full Interactive TUI | System Dashboard |
 
 ---
 
-## 🏎️ 8. Interactive Dashboard
-The full terminal command center.
+## 🪟 7. Slack Command Center
+*Automated remote reporting.*
 
-| Command | Description |
-|---|---|
-| `ash dash` | Launch the Bubble Tea TUI dashboard. |
-
-### Keybindings
-- `r`: Manual data refresh
-- `q`: Exit dashboard
-- `Ctrl+C`: Force quit
+| Command | Action | Integration |
+|:---|:---|:---|
+| `ash slack connect` | Auth link via Bot Token | Webhook / API |
+| `ash slack send` | Manual broadcast | Channel-targeted |
 
 ---
 
-## 🛠️ How to Check New Changes
-
-To verify the new AI improvements, follow these steps:
-
-1. **Rebuild the project**:
-   ```bash
-   go build -o ash main.go
-   ```
-   *If you encounter permission errors, try `go run main.go` instead:*
-   ```bash
-   go run main.go ai ask "Am I being productive today?"
-   ```
-
-2. **Test Multi-turn Memory**:
-   Run two consecutive queries to see if the AI remembers the context:
-   ```bash
-   ./ash ai ask "What are my pending tasks?"
-   ./ash ai ask "Which one should I do first?"
-   ```
-
-3. **Test Interactive Standup**:
-   ```bash
-   ./ash ai standup
-   ```
-   Answer `y` when prompted to copy to clipboard and verify it works.
-
-4. **Test Smart Suggestions**:
-   ```bash
-   ./ash ai suggest
-   ```
-
-5. **Test Daily Intelligence Digest**:
-   ```bash
-   ./ash ai daily-digest
-   ```
-
-**Tip**: Always use `./ash --help` to see the most up-to-date command tree.
+### Pro-Tips:
+- Use `-h` after any command for real-time flag documentation.
+- All AI operations support `--local` to prioritize **Ollama** privacy.
+- For the best experience, run `ash ai weekly-sync` every Sunday to calibrate your OS personality.

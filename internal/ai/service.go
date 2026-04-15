@@ -21,7 +21,7 @@ const (
 	ChatModel            = "mistralai/mistral-small-4-119b-2603"
 	EmbeddingModelName   = "nvidia/nv-embed-v1"
 
-	// Local: Ollama 
+	// Local: Ollama
 	LocalEndpoint       = "http://localhost:11434/v1"
 	LocalChatModel      = "llama3.2"
 	LocalEmbeddingModel = "nomic-embed-text"
@@ -481,5 +481,45 @@ type Service interface {
 	IngestFocusSession(ctx context.Context, startTime time.Time, duration time.Duration, summary string) error
 	IngestNote(ctx context.Context, noteID int, content string) error
 	IngestSprint(ctx context.Context, sprintID int, title, summary string) error
+	SummarizeWeek(ctx context.Context, currentContext string, newData string) (string, error)
 	Reset(ctx context.Context) error
+}
+
+// SummarizeWeek merges the old context with new weekly data using NVIDIA/Mistral.
+func (s *service) SummarizeWeek(ctx context.Context, currentContext string, newData string) (string, error) {
+	fmt.Println("🧠 AI Brain: Re-evaluating your personality context...")
+	systemPrompt := `You are the Brain of ASHOS (Ashish's Personal OS). 
+Update the User's 'Personal Context' based on the current 'About Me' and the last week's activity.
+Reflect new skills, projects, and focus areas. Keep it concise and professional.`
+
+	userPrompt := fmt.Sprintf("CURRENT CONTEXT:\n%s\n\nNEW DATA:\n%s\n\nUpdate the profile now.", currentContext, newData)
+
+	model := ChatModel
+	if s.useLocal {
+		model = LocalChatModel
+		fmt.Printf("🏠 AI Mode: Using Local Model (%s)\n", model)
+	} else {
+		fmt.Printf("☁️ AI Mode: Using Cloud Model (%s)\n", model)
+	}
+
+	resp, err := s.client.CreateChatCompletion(ctx, sdk.ChatCompletionRequest{
+		Model: model,
+		Messages: []sdk.ChatCompletionMessage{
+			{Role: sdk.ChatMessageRoleSystem, Content: systemPrompt},
+			{Role: sdk.ChatMessageRoleUser, Content: userPrompt},
+		},
+		Temperature: 0.7,
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("NVIDIA AI summary failed: %w", err)
+	}
+
+	if len(resp.Choices) == 0 {
+		return "", fmt.Errorf("no response from intelligence")
+	}
+
+	summary := resp.Choices[0].Message.Content
+	fmt.Printf("✅ AI: New personality context generated (%d characters).\n", len(summary))
+	return summary, nil
 }

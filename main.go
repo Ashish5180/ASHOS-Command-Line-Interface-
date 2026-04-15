@@ -70,6 +70,8 @@ func main() {
 	}
 	aiService := ai.NewService(aiRepo, bus, sysService)
 
+
+
 	// --- 🧠 Event Subscriptions (Cross-Module Reactions) ---
 	bus.Subscribe(event.TaskCompleted{}, func(e any) {
 		ev := e.(event.TaskCompleted)
@@ -110,3 +112,5 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+

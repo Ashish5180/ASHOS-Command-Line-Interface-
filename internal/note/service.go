@@ -21,7 +21,7 @@ func NewService(store storage.Store, bus *event.EventBus) *Service {
 
 func (s *Service) AddNote(ctx context.Context, content string) error {
 	var notes []Note
-	_ = s.store.Get(ctx, "journal", "entries", &notes)
+	_ = s.store.Get(ctx, "notes", "entries", &notes)
 
 	newID := 1
 	for _, n := range notes {
@@ -37,7 +37,7 @@ func (s *Service) AddNote(ctx context.Context, content string) error {
 	}
 
 	notes = append(notes, note)
-	if err := s.store.Save(ctx, "journal", "entries", notes); err != nil {
+	if err := s.store.Save(ctx, "notes", "entries", notes); err != nil {
 		return err
 	}
 
@@ -52,6 +52,6 @@ func (s *Service) AddNote(ctx context.Context, content string) error {
 
 func (s *Service) ListNotes(ctx context.Context) ([]Note, error) {
 	var notes []Note
-	err := s.store.Get(ctx, "journal", "entries", &notes)
+	err := s.store.Get(ctx, "notes", "entries", &notes)
 	return notes, err
 }
