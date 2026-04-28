@@ -2,6 +2,7 @@ package ai
 
 import "github.com/sashabaranov/go-openai"
 
+// Maintains the conversation history for a session, allowing us to maintain context across multiple interactions with the user. It stores a list of messages exchanged between the user and the assistant, and it has a maximum number of turns to keep in memory to prevent excessive memory usage.
 type ConversationMemory struct {
 	SessionID string
 	History   []openai.ChatCompletionMessage
