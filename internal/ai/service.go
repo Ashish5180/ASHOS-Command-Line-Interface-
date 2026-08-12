@@ -16,9 +16,9 @@ import (
 
 const (
 	// Vendor: NVIDIA Integration
-	DefaultCloudKey      = "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"
+	DefaultCloudKey      = "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"
 	DefaultCloudEndpoint = "https://integrate.api.nvidia.com/v1"
-	ChatModel            = "mistralai/mistral-small-4-119b-2603"
+	ChatModel            = "nvidia/nemotron-3.5-lightning-30b-a3b"
 	EmbeddingModelName   = "nvidia/nv-embed-v1"
 
 	// Local: Ollama
@@ -481,6 +481,7 @@ type Service interface {
 	IngestFocusSession(ctx context.Context, startTime time.Time, duration time.Duration, summary string) error
 	IngestNote(ctx context.Context, noteID int, content string) error
 	IngestSprint(ctx context.Context, sprintID int, title, summary string) error
+	IngestAboutMe(ctx context.Context, key, category, content string) error
 	SummarizeWeek(ctx context.Context, currentContext string, newData string) (string, error)
 	Reset(ctx context.Context) error
 }
@@ -522,4 +523,37 @@ Reflect new skills, projects, and focus areas. Keep it concise and professional.
 	summary := resp.Choices[0].Message.Content
 	fmt.Printf("✅ AI: New personality context generated (%d characters).\n", len(summary))
 	return summary, nil
+}
+
+// IngestAboutMe embeds a personal context entry (identity, quirk, project, goal)
+// into the "about_me" collection of the RAG vector store.
+// The AI will retrieve these entries when answering questions about Ashish.
+func (s *service) IngestAboutMe(ctx context.Context, key, category, content string) error {
+	if s.repo == nil {
+		return nil
+	}
+
+	hash := calculateHash(content)
+
+	existing, _ := s.repo.GetRecordByHash(ctx, hash)
+	if existing != nil {
+		fmt.Printf("  ⏭️  [%s/%s] Already ingested, skipping.\n", category, key)
+		return nil
+	}
+
+	fmt.Printf("  🧠 Ingesting [%s] %s...\n", category, key)
+	embedding, err := s.generateEmbedding(ctx, content)
+	if err != nil {
+		return fmt.Errorf("embedding failed for %s: %w", key, err)
+	}
+
+	return s.repo.SaveEmbedding(ctx, EmbeddingRecord{
+		Collection:  "about_me",
+		SourceID:    key,
+		SourceType:  category,
+		ContentHash: hash,
+		Content:     content,
+		Metadata:    fmt.Sprintf(`{"category":"%s","key":"%s"}`, category, key),
+		CreatedAt:   time.Now(),
+	}, embedding)
 }

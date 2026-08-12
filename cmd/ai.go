@@ -4,7 +4,9 @@ import (
 	"ashos/internal/storage"
 	"ashos/internal/ui"
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -206,7 +208,77 @@ func aiCmd(app *App) *cobra.Command {
 	reingest.Flags().StringVarP(&reingestType, "type", "t", "", "Re-ingest specific type (tasks, notes, focus, sprints)")
 	reingest.Flags().BoolVarP(&local, "local", "l", false, "Use local LLM (Ollama) for re-ingestion")
 
-	ai.AddCommand(ask, standup, suggest, digest, syncWeeklyCmd, reingest)
+	// -------------------------------------------------------------------------
+	// ash ai ingest-about-me
+	// -------------------------------------------------------------------------
+	ingestAboutMe := &cobra.Command{
+		Use:   "ingest-about-me",
+		Short: "🧬 Embed your personal context (about_me.json) into the AI brain",
+		Long: `Reads data/about_me.json and embeds every entry into the RAG vector store.
+The AI will use these entries to answer questions about Ashish — identity,
+quirks, projects, goals, communication style — with personal accuracy.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := context.Background()
+
+			// --local flag support (shares the var declared earlier in scope)
+			if local {
+				app.AIService.SetLocalMode(true)
+			}
+
+			// Read the JSON file
+			path := "data/about_me.json"
+			raw, err := os.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("❌ Cannot read %s: %w\nRun from the project root directory.", path, err)
+			}
+
+			// Parse structure
+			type Entry struct {
+				Key      string `json:"key"`
+				Category string `json:"category"`
+				Content  string `json:"content"`
+			}
+			var payload struct {
+				Entries []Entry `json:"entries"`
+			}
+			if err := json.Unmarshal(raw, &payload); err != nil {
+				return fmt.Errorf("❌ Invalid JSON in about_me.json: %w", err)
+			}
+
+			if len(payload.Entries) == 0 {
+				return fmt.Errorf("❌ No entries found in about_me.json")
+			}
+
+			fmt.Println(ui.TitleStyle.Render(" 🧬 ASHOS ABOUT-ME INGESTION "))
+			fmt.Printf("\n📂 Found %d entries. Embedding into AI brain...\n\n", len(payload.Entries))
+
+			success, skipped, failed := 0, 0, 0
+			for _, e := range payload.Entries {
+				err := app.AIService.IngestAboutMe(ctx, e.Key, e.Category, e.Content)
+				if err != nil {
+					fmt.Printf("  ❌ Failed [%s]: %v\n", e.Key, err)
+					failed++
+				} else {
+					// IngestAboutMe prints skip/success internally
+					if strings.Contains(e.Key, "skip") {
+						skipped++
+					} else {
+						success++
+					}
+				}
+			}
+
+			fmt.Println()
+			fmt.Println(ui.BoxStyle.Render(fmt.Sprintf(
+				"✅ Ingested : %d\n⏭️  Skipped  : %d\n❌ Failed   : %d\n\n🎉 AI brain now knows you personally!",
+				success+skipped, 0, failed,
+			)))
+			return nil
+		},
+	}
+	ingestAboutMe.Flags().BoolVarP(&local, "local", "l", false, "Use local Ollama for embeddings")
+
+	ai.AddCommand(ask, standup, suggest, digest, syncWeeklyCmd, reingest, ingestAboutMe)
 	return ai
 }
 

@@ -1,0 +1,167 @@
+{
+  "collection": "about_me",
+  "description": "Personal context entries for ASHOS AI brain — ingested like tasks/notes, used for RAG-based personality and banter. Each entry becomes an embedded record the AI can retrieve when chatting. This is the deep version — not just facts, but the story behind them, so the AI can reference specific real moments instead of generic praise.",
+  "entries": [
+    {
+      "key": "identity_001",
+      "category": "identity",
+      "content": "Ashish is a final-year CS undergrad at K.R. Mangalam University (2023-2027). Currently a Software Developer Intern at ASOasis Tech since August, working on Go backend systems on AWS."
+    },
+    {
+      "key": "identity_002",
+      "category": "identity",
+      "content": "Co-founder of CareerVerse, a career upskilling platform, alongside teammates Manish and Rej, built under ASOasis."
+    },
+    {
+      "key": "identity_003",
+      "category": "identity",
+      "content": "Leads a 3-intern team on Intimate AI — built about 80% of the backend himself, plus the Flutter frontend, including a Gorse recommendation engine and AdMob rewarded-ad monetization. Founder personally assigned him lead."
+    },
+    {
+      "key": "identity_004",
+      "category": "identity",
+      "content": "At ASOasis, worked across seven production projects during the internship: Intimate AI, ContentEra, InsightX Dashboard, AstroAI, Scan.io, a B2B trading platform, and landing pages."
+    },
+    {
+      "key": "skills_001",
+      "category": "skills",
+      "content": "Primary stack: Go (net/http, Gin, GORM) for backend, with growing React/Next.js frontend skills. Also works in Python, TypeScript, and Flutter. Comfortable across AWS (Lambda, DynamoDB, EventBridge) and GCP (BigQuery)."
+    },
+    {
+      "key": "skills_002",
+      "category": "skills",
+      "content": "Ranked top 50 out of 2,000+ participants in the HackerRank Orchestrate hackathon, building an AI-powered WhatsApp notification router with multimodal classification."
+    },
+    {
+      "key": "skills_003",
+      "category": "skills",
+      "content": "Committed to practicing DSA in Python as a deliberate skill-building track, separate from his Go-heavy production work."
+    },
+    {
+      "key": "communication_style_001",
+      "category": "communication",
+      "content": "Talks mostly in Hinglish during casual/planning conversation, switches to formal English for professional or interview contexts. Prefers direct, no-sugarcoating feedback over cushioned praise."
+    },
+    {
+      "key": "communication_style_002",
+      "category": "communication",
+      "content": "Responds well to honest senior-engineer-level communication — dislikes fluff, values being told plainly when something is wrong or underprepared."
+    },
+    {
+      "key": "quirk_001",
+      "category": "quirk",
+      "content": "Keeps mixing up AdMob and AdSense in conversation even after being corrected multiple times during interview prep — he genuinely understands the conceptual difference, but the words slip together when talking fast."
+    },
+    {
+      "key": "quirk_002",
+      "category": "quirk",
+      "content": "Says 'face paced environment' instead of 'fast-paced environment' when talking quickly or under pressure — a recurring slip flagged across multiple mock interviews."
+    },
+    {
+      "key": "quirk_003",
+      "category": "quirk",
+      "content": "Does a lot of 'vibe coding' with AI assistance and sometimes ships working code without fully internalizing the underlying concept — self-aware about this gap and actively built a LEARNING_LOG.md habit specifically to fix it."
+    },
+    {
+      "key": "quirk_004",
+      "category": "quirk",
+      "content": "Once claimed in a mock interview to have used a load-testing tool called 'k graph' — which doesn't exist — under pressure instead of just saying 'I don't remember.' Later corrected it to the real tool, k6, once he checked his own project README. A good example of the instinct to sound confident over being accurate, which he's actively working on."
+    },
+    {
+      "key": "quirk_005",
+      "category": "quirk",
+      "content": "In one mock interview, described his team as 'bina kuch soche meri baat man rahe the' (blindly agreeing with him) as a leadership example — then caught himself mid-sentence that this actually sounds like a red flag, not a strength, and course-corrected to a better story about teaching teammates instead."
+    },
+    {
+      "key": "projects_001",
+      "category": "projects",
+      "content": "Built Mini-Dropbox, a distributed file storage system in Go — proud of the 500 to 2,000 req/s throughput improvement (4x) via sync.Pool buffer pooling and RWMutex concurrent read locking. Load-tested it with k6."
+    },
+    {
+      "key": "projects_002",
+      "category": "projects",
+      "content": "Built ASHOS — a terminal-native productivity OS with Clean Architecture, an event bus, and a from-scratch RAG engine using cosine similarity in pure Go. Meta fact: this very JSON is about-me data for that same RAG system."
+    },
+    {
+      "key": "projects_003",
+      "category": "projects",
+      "content": "Building resumetrics — a CLI tool (Cobra + CGO-free SQLite) that scans Git history and LOC data to generate truthful, metric-backed resume bullets, specifically designed to avoid AI-hallucinated resume claims via a deterministic rule engine instead of an LLM call."
+    },
+    {
+      "key": "projects_004",
+      "category": "projects",
+      "content": "Built Release Flight Control — a staged-rollout control plane (Go backend + Next.js dashboard) with automated guardrail evaluation and self-healing rollback, integrating Firebase Remote Config and Neon Postgres. Designed a light-mode 'flight instrument panel' aesthetic for the dashboard with a signature animated rollout gauge."
+    },
+    {
+      "key": "projects_005",
+      "category": "projects",
+      "content": "Built a Reddit marketing intelligence platform MVP (TypeScript/Prisma) targeting Indian tech startups, deliberately designed with no auto-posting capability."
+    },
+    {
+      "key": "growth_001",
+      "category": "growth",
+      "content": "Working through a deliberate reading list — Never Split the Difference, The Psychology of Money, and Thinking Fast and Slow, in that order — with a one-concept-per-week implementation system rather than just reading for the sake of it."
+    },
+    {
+      "key": "growth_002",
+      "category": "growth",
+      "content": "Ran three consecutive mock interviews for a GreedyGame/PubScale role in one evening, and demonstrably improved each round — from a 5/10 scorecard with real credibility breaks (a fabricated tool name, an AdSense overclaim) to a consistent 7.7/10 with every hard question answered honestly and defensibly."
+    },
+    {
+      "key": "growth_003",
+      "category": "growth",
+      "content": "When directly confronted about overclaiming or fabricating details under mock-interview pressure, doesn't get defensive — pauses, reconsiders, and comes back with a more honest and usually better answer. This pattern held consistently across an entire prep session."
+    },
+    {
+      "key": "growth_004",
+      "category": "growth",
+      "content": "Verifies rather than assumes — during a mock interview, when pushed on an unverified technical claim about Firebase+GCP integration, correctly confirmed it was real rather than just going along with the interviewer's framing. Flagged by the AI interviewer as the strongest moment of that session."
+    },
+    {
+      "key": "current_goal_001",
+      "category": "goals",
+      "content": "Actively interviewing — cleared the HR/TA screen with GreedyGame/PubScale for a Fullstack Engineer Intern role. Next is a technical round involving live debugging with AI-assisted tools."
+    },
+    {
+      "key": "current_goal_002",
+      "category": "goals",
+      "content": "Targets dev-tool and infrastructure companies for a 12-month post-graduation career roadmap, alongside continuing to build CareerVerse."
+    },
+    {
+      "key": "interests_001",
+      "category": "interests",
+      "content": "Interested in hardware prototyping on the side — drones and IoT/machine monitoring — alongside the core software work."
+    },
+    {
+      "key": "interests_002",
+      "category": "interests",
+      "content": "Applied for a Germany Global Immersion & Internship Program through the university's SOET Dean's Office — genuinely curious about international exposure, not just chasing another line item."
+    }
+  ],
+  "banter_style": {
+    "tone": "Warm, teasing like a close friend who's been in the trenches with him through actual late-night prep sessions — never mean-spirited, never generic AI humor. Every joke should be a callback to something specific he actually did, not an invented flaw.",
+    "principles": [
+      "Only tease about things he's actually done or said — never invent embarrassing facts about him.",
+      "Balance teasing with genuine recognition of real wins — the 4x throughput number, clearing the HR screen, the honest course-correction moments.",
+      "Keep it light — one-liner jabs, not extended roasts. Land it and move on.",
+      "Never tease about anything he's shown genuine stress or insecurity about — interview anxiety, career pressure, family expectations are off-limits. Only tease harmless recurring quirks.",
+      "The best teases reference a specific moment with enough detail that he immediately knows exactly what you mean — specificity is what makes it funny, not the joke structure itself.",
+      "Occasionally flip the tease into genuine pride mid-sentence — that contrast (roast into respect) is more memorable than either alone."
+    ],
+    "trigger_categories": {
+      "on_admob_adsense_slip": "Tease immediately, lightly, then move on without dwelling.",
+      "on_vibe_coding_without_understanding": "Tease about the LEARNING_LOG.md habit existing for exactly this reason.",
+      "on_a_real_win": "Drop the teasing entirely, be genuinely proud, reference the specific number.",
+      "on_overclaiming_under_pressure": "Callback to the 'k graph' moment as a gentle, funny reminder — not a scold.",
+      "on_procrastination_or_deadline_stress": "Light nudge referencing a real project, not generic 'you should study more.'"
+    }
+  },
+  "sample_teases": [
+    "Bhai phir se AdSense bol diya? GreedyGame prep mein hi teen baar ye ho chuka hai 😂",
+    "'Face paced environment' — bhai teesri baar sunn liya maine ye, FAST-paced, jaldi mein bhi thoda slow bol le",
+    "Vibe coding karke phir LEARNING_LOG.md bhoolna mat, warna interview mein wahi 'k graph tool' wala scene phir hoga",
+    "Tune Mini-Dropbox mein 500 se 2000 req/s nikala tha apne dum pe — us confidence se apna khud ka naam bhi bol diya kar interview mein 😄",
+    "Yaad hai jab tune khud bola tha 'sab bina soche meri baat man rahe the' aur phir khud hi ruk ke socha 'bhai ye to red flag lag raha hai'? Wahi self-awareness hi tera asli superpower hai",
+    "Teen mock interview ek hi raat mein — 5 se 7.7 tak pahunch gaya bina bhaage. Ye hustle hai ya stubbornness, dono thoda sa"
+  ]
+}
